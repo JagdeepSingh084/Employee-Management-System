@@ -50,8 +50,8 @@ class Employee_services:
                     return "Employee position can only contain alphabetic characters and spaces" 
             else:
                 position = None
-        except ValueError:
-            return "Invalid input. Please enter integer values for salary and age"
+        except Exception as e:
+            return "str(e)"
         
         #Calling add_employee 
         self.data_access.add_employee(id, name, salary, age, position)
@@ -156,7 +156,7 @@ class Employee_services:
         # Convert Pandas int64 to native Python int before passing to MySQL
         new_id = int(new_id)
         new_salary = float(new_salary) if new_salary else np.nan
-        new_age = int(new_age) if new_age else None
+        new_age = pd.NA if str(new_age).strip() == "" else new_age
 
         try:
             self.data_access.update_employee_by_id(id, new_id, new_name, new_salary, new_age, new_position)
@@ -169,16 +169,19 @@ class Employee_services:
             if not name or not re.match(r"^[A-Za-z\s]+$", name.strip()):
                 return "Employee name can only contain alphabetic characters and spaces"
             
+            df = self.data_access.get_data()
+            df['Name'] = df['Name'].astype(str)
+            
             #find employee with the given name
-            if name.lower() not in self.data_access.get_data()['Name'].astype(str).str.lower().values:
+            if str(name).lower() not in df['Name'].str.lower().values:
                 return f"Employee with name: {name} not found in the database"
            
            #Validating new name
-            if not re.match(r"^[A-Za-z\s]+$", new_name.strip()):
+            if new_name and not re.match(r"^[A-Za-z\s]+$", new_name.strip()):
                 return "Employee name can only contain alphabetic characters and spaces"
             
             #checking existance of new name inside the database
-            if new_name.lower() != name.lower() and new_name.lower() in self.data_access.get_data()['Name'].astype(str).str.lower().values:
+            if str(new_name).lower() != name.lower() and new_name.lower() in df['Name'].astype(str).str.lower().values:
                 return f"Employee Name: {new_name} already exists"
             
             if new_salary.strip():
@@ -199,7 +202,7 @@ class Employee_services:
                 return "Employee position can only contain alphabetic characters and spaces"
             
             #storing the original details of the employee
-            emp_record = self.data_access.get_data().loc[self.data_access.get_data()['Name'].astype(str).str.lower() == str(name).lower()].iloc[0]
+            emp_record = df.loc[df['Name'].str.lower() == str(name).lower()].iloc[0]
 
             #updating new_details if new_details are provided
             new_id = int(new_id) if new_id.strip() else emp_record['ID']
@@ -211,7 +214,7 @@ class Employee_services:
             # Convert Pandas int64 to native Python int before passing to MySQL
             new_id = int(new_id)
             new_salary = float(new_salary) if new_salary else np.nan
-            new_age = new_age if new_age else None
+            new_age = None if new_age is None else int(new_age)
     
             self.data_access.update_employee_by_name(name, new_name, new_id, new_salary, new_age, new_position)
 

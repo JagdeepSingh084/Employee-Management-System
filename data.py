@@ -24,7 +24,7 @@ class EmployeeData:
             self.conn.commit()
 
         except mysql.connector.Error as e:
-            print("database error: str{e}")
+            print("database error: {str(e)}")
 
     #fetching all data from the table
     def get_data(self):
@@ -40,7 +40,7 @@ class EmployeeData:
     #add new employee to the database
     def add_employee(self, id, name, salary, age, position):
         try:
-            age = int(age) if age else None
+            age = int(age) if pd.notna(age) else None
             query = "INSERT INTO employee_table(ID, Name, Salary, Age, Position) VALUES(%s, %s, %s, %s, %s)"
             self.cursor.execute(query, (id, name, salary, age, position))
             self.conn.commit()
@@ -62,6 +62,7 @@ class EmployeeData:
 
     #Updating employee by id
     def update_employee_by_id(self, id, new_id, new_name, new_salary, new_age, new_position):
+        new_age = None if pd.isna(new_age) or str(new_age).strip() == "" else int(new_age)
         query = """
                 UPDATE employee_table SET
                 ID = %s,
