@@ -79,6 +79,7 @@ class EmployeeData:
 
     #Updating employee by name
     def update_employee_by_name(self,name, new_name, new_id, new_salary, new_age, new_position):
+        new_age = None if pd.isna(new_age) or str(new_age).strip() == "" else int(new_age)
         query = """
                 UPDATE employee_table SET
                 id = %s,
